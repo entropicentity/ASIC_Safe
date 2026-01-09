@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Your Name
+ * Copyright (c) 2024 Alexander Singer
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -15,13 +15,61 @@ module tt_um_example (
     input  wire       clk,      // clock
     input  wire       rst_n     // reset_n - low to reset
 );
-
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
+  assign uo_out  = 0;  // Example: ou_out is the sum of ui_in and uio_in
   assign uio_out = 0;
   assign uio_oe  = 0;
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0};
+  wire _unused = &{uio_in[7:4], ena, clk, rst_n, 1'b0};
+
+    wire c1;
+    wire c2;
+
+    wire green;
+    wire blue;
+    wire lock;
+
+    wire [3:0] dataline;
+
+    wire [3:0] numins;
+    wire [2:0] numouts;
+
+    assign uio_out[2:0] = numouts;
+    assign uio_out[3] = lock;
+    assign uio_out[4] = green;
+    assign uio_out[5] = blue;
+    assign uio_out[7:6] = 2'b00;
+
+  clockboss u_clockboss (
+    .clk(clk),
+    .rst(~rst_n),
+    .c1(c1),
+    .c2(c2)
+  );
+
+  membranedriver u_membranedriver (
+    .clk(c1),
+    .rst(~rst_n),
+    .in0(uio_in[0]),
+    .in1(uio_in[1]),
+    .in2(uio_in[2]),
+    .in3(uio_in[3]),
+    .out0(numouts[0]),
+    .out1(numouts[1]),
+    .out2(numouts[2]),
+    .data_out(dataline)
+  );
+
+  safecontrol u_safecontrol (
+    .clk(c2),
+    .rst(~rst_n),
+    .invalue(dataline),
+    .lock(lock),
+    .green(green),
+    .blue(blue)
+  );
+
+
 
 endmodule
